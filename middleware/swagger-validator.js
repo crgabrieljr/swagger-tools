@@ -220,8 +220,15 @@ var wrapEnd = function (req, res, next) {
             schema = schema.responseModel;
           }
         } else {
+          var contentType = res.getHeader('content-type');
+          var statusCode = (res.statusCode || 200).toString();
+          var validCodes = [statusCode];
+          if (contentType) {
+            var extendedStatus = '' + statusCode + '[' + contentType + ']';
+            validCodes.push(extendedStatus);
+          }
           schema = _.find(operation.responses, function (response, code) {
-            if (code === (res.statusCode || 200).toString()) {
+            if (validCodes.indexOf(code) !== -1) {
               vPath.push('responses', code);
 
               return true;
