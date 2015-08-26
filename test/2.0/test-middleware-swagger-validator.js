@@ -1055,6 +1055,35 @@ describe('Swagger Validator Middleware v2.0', function () {
           ], done));
       });
     });
+
+    it('should validate response against the correct schema when response key includes media type', function (done) {
+      var cPetStoreJson = _.cloneDeep(petStoreJson);
+
+      cPetStoreJson.paths['/pets/{id}'].get.responses['200[application/json]'] =
+          cPetStoreJson.paths['/pets/{id}'].get.responses['200'];
+
+      cPetStoreJson.paths['/pets/{id}'].get['x-swagger-router-controller'] = 'Pets';
+      cPetStoreJson.paths['/pets/{id}'].get.operationId = 'getPetById';
+
+      helpers.createServer([cPetStoreJson], {
+        swaggerRouterOptions: {
+          controllers: {
+            'Pets_getPetById': function (req, res) {
+              res.setHeader('Content-Type', 'application/json');
+              res.end(samplePet);
+            }
+          }
+        },
+        swaggerValidatorOptions: {
+          validateResponse: true
+        }
+      }, function (app) {
+        request(app)
+          .get('/api/pets/1')
+          .expect(200)
+          .end(done);
+      });
+    });
   });
 
   describe('issues', function () {
